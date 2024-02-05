@@ -1,5 +1,5 @@
 import { Input } from "baseui/input";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { emojiData } from "../mockData";
 //
 //Number: 1,
@@ -13,32 +13,51 @@ import { emojiData } from "../mockData";
 //CLDR_Short_Name: "grinning face",
 //
 
+export const search = (docs, term) => {
+  const result = [];
+
+  for (const doc of docs) {
+    if (doc.CLDR_Short_Name.includes(term)) {
+      result.push(doc);
+    }
+  }
+
+  return result;
+};
+
+export const extractQuery = (input) => {
+  // trim and extract the query
+  let colonIndex = input.indexOf(":");
+  let query;
+  if (!colonIndex !== -1) {
+    query = input.substring(colonIndex + 1).trim();
+    //.slice(1);
+  }
+  return query;
+};
 function FancyInput({ placeholder }) {
   const [data, setData] = useState(emojiData);
-  const [emoji, setEmoji] = useState("");
   const [inputValue, setInputValue] = useState("");
   const [showPopover, setShowPopover] = useState(false);
   //const [isPopoverOpen, setPopoverOpen] = useState(false);
 
-  function search(docs, term) {
-    const result = [];
-
-    for (const doc of docs) {
-      if (doc.CLDR_Short_Name.includes(term)) {
-        result.push(doc);
-      }
+  useEffect(() => {
+    //reset search
+    if (inputValue.length === 0) {
+      setData(emojiData);
     }
-
-    return result;
-  }
+    //check if space, reset data
+    if (inputValue.includes(" ")) {
+      setData(emojiData);
+    }
+  }, [inputValue]);
 
   const handleInputChange = (e) => {
     const input = e.target.value;
     setInputValue(input);
-    //setEmoji(inputValue);
-    const searchResults = search(data, input.slice(1));
+    const searchResults = search(data, extractQuery(input));
     setData(searchResults);
-    console.log(searchResults, input.slice(1), "HERE");
+    //console.log(searchResults, extractQuery(input), "HERE");
     // Regular expression to match a colon followed by 2 or more alphanumeric characters
     const regex = /:(\w{2,})$/;
 
@@ -50,9 +69,17 @@ function FancyInput({ placeholder }) {
   };
 
   const handleEmojiClick = (emoji) => {
-    setEmoji(emoji);
     setShowPopover(false);
-    setInputValue(emoji);
+    // TODO remove :query
+    setInputValue((prev) => prev + emoji);
+  };
+
+  const handleEmojiPickerMouseEnter = () => {
+    setShowPopover(true);
+  };
+
+  const handleEmojiPickerMouseLeave = () => {
+    setShowPopover(false);
   };
 
   return (
@@ -62,7 +89,10 @@ function FancyInput({ placeholder }) {
           <p>Select</p>
           {data.map((emoji) => {
             return (
-              <div key={emoji.Number}>
+              <div
+                key={emoji.Number}
+                onMouseEnter={handleEmojiPickerMouseEnter}
+              >
                 <button
                   key={emoji.Number}
                   onClick={() => handleEmojiClick(emoji.Browser)}
@@ -78,6 +108,8 @@ function FancyInput({ placeholder }) {
         placeholder={placeholder}
         value={inputValue}
         onChange={(e) => handleInputChange(e)}
+        onMouseEnter={handleEmojiPickerMouseEnter}
+        onMouseLeave={handleEmojiPickerMouseLeave}
       />
     </>
   );
