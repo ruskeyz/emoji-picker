@@ -51,7 +51,28 @@ function FancyInput({ placeholder }) {
     if (inputValue.includes(" ")) {
       setData(emojiData);
     }
-  }, [inputValue]);
+    if (data.length === 0) {
+      setShowPopover(false);
+    }
+    // handle clicking outside the query inside Input
+    const handleClickOutside = () => {
+      if (inputRef.current) {
+        const cursorPosition = inputRef.current.selectionStart;
+        const cursorInsideQuery = inputRef.current.value
+          .substring(0, cursorPosition)
+          .includes(":");
+
+        if (!cursorInsideQuery) {
+          setShowPopover(false);
+        }
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [inputValue, data]);
 
   const handleInputChange = (e) => {
     const input = e.target.value;
@@ -76,14 +97,6 @@ function FancyInput({ placeholder }) {
       inputRef.current && inputRef.current.focus();
       return match ? prev.replace(match[0], emoji) : prev + emoji;
     });
-  };
-
-  const handleEmojiPickerMouseEnter = () => {
-    setShowPopover(true);
-  };
-
-  const handleEmojiPickerMouseLeave = () => {
-    setShowPopover(false);
   };
 
   return (
@@ -114,8 +127,6 @@ function FancyInput({ placeholder }) {
         value={inputValue}
         inputRef={inputRef}
         onChange={(e) => handleInputChange(e)}
-        onMouseEnter={handleEmojiPickerMouseEnter}
-        onMouseLeave={handleEmojiPickerMouseLeave}
       />
     </LayoutInput>
   );
