@@ -1,17 +1,7 @@
 import { Input } from "baseui/input";
 import { useEffect, useState } from "react";
 import { emojiData } from "../mockData";
-//
-//Number: 1,
-//Code: "U+1F600",
-//Browser: "😀",
-//Sample: "😀",
-//GMail: "😀",
-//SB: "—",
-//DCM: "—",
-//KDDI: "—",
-//CLDR_Short_Name: "grinning face",
-//
+import { StatefulMenu } from "baseui/menu";
 
 export const search = (docs, term) => {
   const result = [];
@@ -30,7 +20,6 @@ export const extractQuery = (input) => {
   let query;
   if (!colonIndex !== -1) {
     query = input.substring(colonIndex + 1).trim();
-    //.slice(1);
   }
   return query;
 };
@@ -40,7 +29,6 @@ function FancyInput({ placeholder }) {
   const [data, setData] = useState(emojiData);
   const [inputValue, setInputValue] = useState("");
   const [showPopover, setShowPopover] = useState(false);
-  //const [isPopoverOpen, setPopoverOpen] = useState(false);
 
   useEffect(() => {
     //reset search
@@ -61,7 +49,6 @@ function FancyInput({ placeholder }) {
     setData(searchResults);
     console.log(searchResults, extractQuery(input), "HERE");
     // Regular expression to match a colon followed by 2 or more alphanumeric characters
-
     if (REGEX_CONSTANT.test(input) && !showPopover) {
       setShowPopover(true);
     } else if (!REGEX_CONSTANT.test(input) && showPopover) {
@@ -92,6 +79,7 @@ function FancyInput({ placeholder }) {
       {showPopover ? (
         <div>
           <p>Select</p>
+          <StatefulMenu items={data} labelKey="CLDR_Short_Name" />
           {data.map((emoji) => {
             return (
               <div
