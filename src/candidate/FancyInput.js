@@ -21,7 +21,6 @@ export const search = (docs, term) => {
       result.push(doc);
     }
   }
-
   return result;
 };
 
@@ -35,6 +34,8 @@ export const extractQuery = (input) => {
   }
   return query;
 };
+export const REGEX_CONSTANT = /:(\w{2,})$/;
+
 function FancyInput({ placeholder }) {
   const [data, setData] = useState(emojiData);
   const [inputValue, setInputValue] = useState("");
@@ -47,6 +48,7 @@ function FancyInput({ placeholder }) {
       setData(emojiData);
     }
     //check if space, reset data
+    // TODO inconsistency
     if (inputValue.includes(" ")) {
       setData(emojiData);
     }
@@ -57,21 +59,24 @@ function FancyInput({ placeholder }) {
     setInputValue(input);
     const searchResults = search(data, extractQuery(input));
     setData(searchResults);
-    //console.log(searchResults, extractQuery(input), "HERE");
+    console.log(searchResults, extractQuery(input), "HERE");
     // Regular expression to match a colon followed by 2 or more alphanumeric characters
-    const regex = /:(\w{2,})$/;
 
-    if (regex.test(input) && !showPopover) {
+    if (REGEX_CONSTANT.test(input) && !showPopover) {
       setShowPopover(true);
-    } else if (!regex.test(input) && showPopover) {
+    } else if (!REGEX_CONSTANT.test(input) && showPopover) {
       setShowPopover(false);
     }
   };
 
   const handleEmojiClick = (emoji) => {
     setShowPopover(false);
-    // TODO remove :query
-    setInputValue((prev) => prev + emoji);
+    setInputValue((prev) => {
+      // find the subtring after :
+      const match = prev.match(REGEX_CONSTANT);
+
+      return match ? prev.replace(match[0], emoji) : prev + emoji;
+    });
   };
 
   const handleEmojiPickerMouseEnter = () => {
