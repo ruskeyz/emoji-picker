@@ -6,8 +6,9 @@
     - user types a sequence that doesnt match (close) done
     - user moves cursor to another part of the input - done
     - replace :query in input current value done 
-
-- get Select base UI - TODO
-- get Popover base UI TODO
 - get mock data DONE
+
+- get Menu base UI - TODO
+- get Popover base UI TODO
+- scrape data [jsdom](https://www.npmjs.com/package/jsdom)
 
