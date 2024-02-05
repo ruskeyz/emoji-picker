@@ -1,7 +1,8 @@
 import { Input } from "baseui/input";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { emojiData } from "../mockData";
 import { StatefulMenu } from "baseui/menu";
+import { styled } from "styletron-react";
 
 export const search = (docs, term) => {
   const result = [];
@@ -25,10 +26,21 @@ export const extractQuery = (input) => {
 };
 export const REGEX_CONSTANT = /:(\w{2,})$/;
 
+const LayoutInput = styled("div", {
+  position: "relative",
+});
+
+const InputWrapper = styled("div", {
+  position: "absolute",
+  top: "50px",
+  width: "100%",
+});
+
 function FancyInput({ placeholder }) {
   const [data, setData] = useState(emojiData);
   const [inputValue, setInputValue] = useState("");
   const [showPopover, setShowPopover] = useState(false);
+  const inputRef = useRef(null);
 
   useEffect(() => {
     //reset search
@@ -36,7 +48,6 @@ function FancyInput({ placeholder }) {
       setData(emojiData);
     }
     //check if space, reset data
-    // TODO inconsistency
     if (inputValue.includes(" ")) {
       setData(emojiData);
     }
@@ -47,7 +58,6 @@ function FancyInput({ placeholder }) {
     setInputValue(input);
     const searchResults = search(data, extractQuery(input));
     setData(searchResults);
-    console.log(searchResults, extractQuery(input), "HERE");
     // Regular expression to match a colon followed by 2 or more alphanumeric characters
     if (REGEX_CONSTANT.test(input) && !showPopover) {
       setShowPopover(true);
@@ -62,6 +72,8 @@ function FancyInput({ placeholder }) {
       // find the subtring after :
       const match = prev.match(REGEX_CONSTANT);
 
+      // keep typing after emoji
+      inputRef.current && inputRef.current.focus();
       return match ? prev.replace(match[0], emoji) : prev + emoji;
     });
   };
@@ -75,36 +87,37 @@ function FancyInput({ placeholder }) {
   };
 
   return (
-    <>
+    <LayoutInput>
       {showPopover ? (
-        <div>
-          <p>Select</p>
-          <StatefulMenu items={data} labelKey="CLDR_Short_Name" />
-          {data.map((emoji) => {
-            return (
-              <div
-                key={emoji.Number}
-                onMouseEnter={handleEmojiPickerMouseEnter}
-              >
-                <button
-                  key={emoji.Number}
-                  onClick={() => handleEmojiClick(emoji.Browser)}
-                >
-                  {emoji.Browser}
-                </button>
-              </div>
-            );
-          })}
-        </div>
+        <InputWrapper>
+          <StatefulMenu
+            items={data}
+            onItemSelect={({ item }) => handleEmojiClick(item.Browser)}
+            overrides={{
+              List: {
+                style: {
+                  height: "300px",
+                },
+              },
+              Option: {
+                props: {
+                  getItemLabel: (item) =>
+                    item.Browser + ":" + item.CLDR_Short_Name,
+                },
+              },
+            }}
+          />
+        </InputWrapper>
       ) : null}
       <Input
         placeholder={placeholder}
         value={inputValue}
+        inputRef={inputRef}
         onChange={(e) => handleInputChange(e)}
         onMouseEnter={handleEmojiPickerMouseEnter}
         onMouseLeave={handleEmojiPickerMouseLeave}
       />
-    </>
+    </LayoutInput>
   );
 }
 
